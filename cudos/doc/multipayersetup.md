@@ -2,7 +2,7 @@
 
 ## Scenario
 
-Customer with multiple payer accouns wants to consolidate the CUDOS Dashboards under a single account.
+Customer with multiple payer accouns wants to consolidate one single CUDOS Dashboards under a single account.
 In this example:</br>
 &nbsp;&nbsp; Account 111111111111 is *payer1* with cur bucket *cur-cudos-111*</br> 
 &nbsp;&nbsp; Account 222222222222 is *payer2* with cur bucket *cur-cudos-222*<br>
@@ -194,6 +194,61 @@ For each of the CUR buckets in each of the payer accounts:
     aws s3 sync s3://cudos-cur-222 s3://cudos-cur-combined-111 --exclude "*" --include "payer2-reportname/payer2-prefix/*"  --acl bucket-owner-full-control --profile payer2
 
     ```
+* verify using the console that the existing objects were replicated
+
+
+## Configuring the glue crawler
+
+We will configure the glue crawler manually to crawl the consolidated bucket. Navigate to Glue console, click on crawlers, add new crawler with the following setting: 
+
+![Alt text](/cudos/doc/resources/glue_1.png?raw=true "Lifecycle Delete Old Versions")
+
+![Alt text](/cudos/doc/resources/glue_2.png?raw=true "Lifecycle Delete Old Versions")
+
+![Alt text](/cudos/doc/resources/glue_3.png?raw=true "Lifecycle Delete Old Versions")
+
+![Alt text](/cudos/doc/resources/glue_4.png?raw=true "Lifecycle Delete Old Versions")
+
+![Alt text](/cudos/doc/resources/glue_5.png?raw=true "Lifecycle Delete Old Versions")
+
+You can pick a different database than default if you'd like:
+
+![Alt text](/cudos/doc/resources/glue_6.png?raw=true "Lifecycle Delete Old Versions")
+
+Run the Glue crawler.
+
+Navigate to athena and verify the your *cudos-cur-combined-111* (this would be your actual bucket name)  was created succesfully in the database selected, run a preview on the table to make sure you can view the records. 
+
+If this was succesfull, you can go ahead and run trough the deployment steps. Note that account mapping functionality is not supported for this multi payer consolidation options, you'd need to define that mapping yourself by generating the account_map table to include account names and descriptions from all payer accounts. 
+Example: 
+
+```
+   CREATE OR REPLACE VIEW account_map AS 
+SELECT *
+FROM
+  (
+ VALUES 
+     ROW ('111111111111', 'payer account1: 111111111111')
+   , ROW ('222222222222', 'payer account2: 222222222222')
+   , ROW ('333333333333', 'linked account3: 333333333333')
+   , ROW ('444444444444', 'linked account4: 444444444444')
+   ......
+)  ignored_tabe_name (account_id, account_name)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
